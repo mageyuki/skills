@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - name: Validate registry and skills
+        shell: bash
+        env:
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          if [[ "$GITHUB_REF_NAME" == "main" ]]; then
+            base="$PUSH_BEFORE_SHA"
+          else
+            base="origin/main"
+          fi
+          PYTHONDONTWRITEBYTECODE=1 REGISTRY_BASE_SHA="$base" python3 -m unittest discover -s tests -v

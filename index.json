@@ -1,0 +1,15 @@
+{
+  "skills": [
+    {
+      "name": "research-workflow",
+      "version": "0.1.0",
+      "files": [
+        "SKILL.md",
+        "references/artifact-templates.md",
+        "references/manifest-schema.md",
+        "references/source-priority.md",
+        "scripts/init_workspace.py"
+      ]
+    }
+  ]
+}
