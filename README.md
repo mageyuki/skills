@@ -2,9 +2,11 @@
 
 ## Overview
 
-This repository is a public OpenCode-compatible registry of portable skills maintained by mageyuki. The registry root is served directly, with each skill directory acting as both reviewed source and downloadable payload.
+This repository is a public Agent Skills-compatible collection maintained by mageyuki. OpenCode can consume it as a remote registry; other supported agents can install the same skill directories locally.
 
 ## Install
+
+### OpenCode
 
 Add the raw registry root to your OpenCode configuration:
 
@@ -20,6 +22,67 @@ Add the raw registry root to your OpenCode configuration:
 
 Fully quit and restart OpenCode after changing its configuration.
 
+### Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor, and Grok Build
+
+#### Optional installer
+
+The third-party [Vercel Labs `skills` CLI](https://skills.sh/docs/cli) can install `research-workflow` for all six agents in the current project:
+
+```bash
+npx skills add mageyuki/skills --skill research-workflow -a claude-code -a codex -a gemini-cli -a github-copilot -a cursor -a grok -y
+```
+
+#### Native install
+
+Clone the repository and copy the complete skill directory so its `scripts/` and `references/` remain available:
+
+```bash
+git clone --depth 1 https://github.com/mageyuki/skills.git mageyuki-skills
+```
+
+| Agent | Project directory | User directory | Reload or check |
+|---|---|---|---|
+| [Claude Code](https://code.claude.com/docs/en/skills) | `.claude/skills/` | `~/.claude/skills/` | Changes are watched; restart only if the directory was created after startup. |
+| [Codex](https://developers.openai.com/codex/build-skills) | `.agents/skills/` | `~/.agents/skills/` | Restart if the skill does not appear. |
+| [Gemini CLI](https://geminicli.com/docs/cli/skills/) | `.agents/skills/` | `~/.agents/skills/` | Run `/skills reload`. |
+| [GitHub Copilot](https://docs.github.com/en/copilot/concepts/agents/about-agent-skills) | `.agents/skills/` | `~/.agents/skills/` | CLI: run `/skills reload`; cloud agent: commit the project skill. |
+| [Cursor](https://cursor.com/docs/context/skills) | `.agents/skills/` | `~/.agents/skills/` | Restart Cursor if the skill is not discovered. |
+| [Grok Build](https://docs.x.ai/build/features/skills-plugins-marketplaces) | `.grok/skills/` | `~/.grok/skills/` | Run `grok inspect`; disk changes reload automatically. |
+
+For a project installation, run only the pair for your agent group:
+
+```bash
+# Claude Code
+mkdir -p .claude/skills
+cp -R mageyuki-skills/research-workflow .claude/skills/
+
+# Codex, Gemini CLI, GitHub Copilot, or Cursor
+mkdir -p .agents/skills
+cp -R mageyuki-skills/research-workflow .agents/skills/
+
+# Grok Build
+mkdir -p .grok/skills
+cp -R mageyuki-skills/research-workflow .grok/skills/
+```
+
+For a user installation, run only the pair for your agent group:
+
+```bash
+# Claude Code
+mkdir -p "$HOME/.claude/skills"
+cp -R mageyuki-skills/research-workflow "$HOME/.claude/skills/"
+
+# Codex, Gemini CLI, GitHub Copilot, or Cursor
+mkdir -p "$HOME/.agents/skills"
+cp -R mageyuki-skills/research-workflow "$HOME/.agents/skills/"
+
+# Grok Build
+mkdir -p "$HOME/.grok/skills"
+cp -R mageyuki-skills/research-workflow "$HOME/.grok/skills/"
+```
+
+`Grok Build` means the official xAI `grok` coding agent from [x.ai/cli](https://x.ai/cli/).
+
 ## Available skills
 
 | Skill | Version | Purpose |
@@ -30,6 +93,8 @@ Fully quit and restart OpenCode after changing its configuration.
 
 The `main` branch is the latest channel. Every change to a skill payload must bump that skill's semantic version in `index.json`, because OpenCode uses the version to decide when to refresh its cache. Reviewed release tags preserve immutable source revisions.
 
+Local installations are updated with `npx skills update` when installed by the optional CLI, or by pulling the source clone and copying the skill directory again.
+
 After bootstrap, publish an update by pushing a reviewed commit to a temporary candidate branch, waiting for the `validate` status on that exact SHA, and then fast-forwarding `main` to the same SHA without merge or rebase.
 
 ## Adding a skill
@@ -38,7 +103,7 @@ Add a skill in its own directory with a `SKILL.md`, list every payload file in `
 
 ## Availability
 
-OpenCode needs network access to fetch the registry index at startup. If the registry is unavailable, OpenCode does not enumerate a stale remote-skill cache; consumers should treat the skill as unavailable and retry after service is restored.
+OpenCode needs network access to fetch the registry index at startup. If the registry is unavailable, OpenCode does not enumerate a stale remote-skill cache; consumers should treat the skill as unavailable and retry after service is restored. Local agent installations continue using their installed copy until explicitly updated.
 
 ## Security
 
