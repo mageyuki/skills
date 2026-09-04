@@ -11,7 +11,7 @@ Extend the public README from OpenCode-only installation to accurate installatio
 - Keep the current OpenCode `skills.urls` installation unchanged.
 - Document project-level and user-level installation for the six selected agents.
 - Present Vercel Labs `skills` CLI as an optional shortcut, not an official vendor mechanism.
-- Verify whether the current `research-workflow` skill wording is portable before changing its payload.
+- Leave the current `research-workflow` payload and registry version unchanged.
 - Link claims to first-party product documentation.
 
 ## Exclusions
@@ -43,9 +43,9 @@ Grok means the official xAI Grok Build CLI/TUI installed from `x.ai/cli`. It doe
 The `Install` section will use this order:
 
 1. OpenCode remote registry configuration and restart instruction.
-2. Optional Vercel Labs CLI installation for all selected local agents.
+2. Optional Vercel Labs CLI installation for all selected agents in the current project.
 3. Native local installation table with project, user, and reload guidance.
-4. One shared clone-and-copy procedure for users who do not use the optional CLI.
+4. Exact native clone-and-copy commands grouped by compatible directory.
 
 The optional project command is:
 
@@ -53,36 +53,22 @@ The optional project command is:
 npx skills add mageyuki/skills --skill research-workflow -a claude-code -a codex -a gemini-cli -a github-copilot -a cursor -a grok -y
 ```
 
-The user-level form adds `-g`. The README will identify this as the Vercel Labs `skills` CLI and link to its documentation. It will not use `--all`, because that would install to agents outside the selected scope.
+The README will identify this as the Vercel Labs `skills` CLI and link to its documentation. It will not use `-g`, because the CLI's Codex user directory differs from Codex's first-party documentation. It will not use `--all`, because that would install to agents outside the selected scope.
 
-The native fallback will clone the repository and copy the complete `research-workflow/` directory, not only `SKILL.md`, because the skill requires `scripts/` and `references/`:
+The native fallback will clone the repository and copy the complete `research-workflow/` directory, not only `SKILL.md`, because the skill requires `scripts/` and `references/`. Copy commands will be grouped for Claude Code, the four agents using `.agents/skills/`, and Grok Build so no executable example silently chooses the wrong host directory.
 
 ```bash
 git clone --depth 1 https://github.com/mageyuki/skills.git mageyuki-skills
-mkdir -p <skills-directory>
-cp -R mageyuki-skills/research-workflow <skills-directory>/
 ```
-
-The table will make clear that `<skills-directory>` is the parent directory shown for the selected agent and scope.
 
 ## Skill Portability Decision
 
-The current skill says to use the exact phrase `Base directory for this skill` reported by the loader. That phrase is OpenCode-specific, while the Agent Skills specification describes supporting files relative to the skill root.
-
-Before editing the payload, run reference-skill application scenarios against the current text:
-
-1. The host supplies a concrete skill directory without OpenCode's phrase. The agent must resolve `scripts/init_workspace.py` below it.
-2. The host supplies only the loaded `SKILL.md` path. The agent must derive the sibling `scripts/` path.
-3. The host exposes no skill location. The agent must report the missing location rather than guess a config, cache, or home path.
-
-If the current wording passes all scenarios, leave the skill payload and `index.json` unchanged. If a scenario fails because of the OpenCode-specific phrase, replace it with loader-neutral guidance to resolve `scripts/init_workspace.py` relative to this skill's directory. A payload edit requires a semantic version bump from `0.1.0` to `0.1.1`.
+The Agent Skills specification supports this skill's relative `scripts/` and `references/` layout. An attempted behavioral evaluation did not load the candidate and therefore established neither a pass nor a skill failure. On 2026-09-04, the user chose README-only work rather than an unverified payload edit or an expansion into evaluation-infrastructure maintenance. Therefore `research-workflow/`, `index.json`, and registry tests remain unchanged.
 
 ## Verification
 
-- Record baseline scenario outputs before any skill edit.
-- If edited, rerun the same scenarios with the modified skill and record the changed behavior.
 - Run `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v`.
-- Run registry validation against the pre-change commit so a payload edit without a version bump fails.
+- Confirm that no skill payload or registry version changed.
 - Check README commands, paths, product names, and official links against the persisted research ledger.
 - Review each retained implementation task, then perform one final whole-change critical review.
 
