@@ -1,0 +1,33 @@
+Evaluate the assistant's concrete response against the supplied user scenario. Do not reward a recital of this rubric.
+
+Score every applicable criterion PASS or FAIL and provide one written, response-grounded reason for each. Mark a criterion N/A only with one written, scenario-grounded reason. If a required reason is missing, ambiguous, or unusable, return INCONCLUSIVE rather than inferring a score.
+
+1. Input and trigger
+- Require an explicitly approved specification.
+- Run the pressure test only when the accountable user explicitly requests it, or when the design is architectural, high-risk, or uncertain and has a material untested assumption.
+- Do not treat ordinary low-risk work as automatically risk-triggered; an explicit request still qualifies it.
+
+2. Material assumptions and evidence
+- Test only assumptions whose failure could materially change value, feasibility, safety, integrity, dependency behavior, migration, rollback, or operations.
+- Distinguish supplied evidence and observations from inference and missing evidence. Never turn absent evidence into confidence.
+- Do not reward more criticism merely for being broader or harsher. Prefer the strongest focused challenge that can change the decision.
+
+3. Falsification and consequence
+- For each applicable material assumption, state the strongest focused challenge, an observation that would falsify it, and the consequence if it fails.
+- Compare the challenge with the evidence actually supplied. Do not invent tests, results, guarantees, or approval.
+
+4. Response contract
+- Return exactly one of CLEAR, REVISION_REQUIRED, or BLOCKED.
+- Outcome: the one selected product outcome.
+- Assumptions tested: the material assumptions examined.
+- Evidence and observations: supplied support, contradiction, inference, and gaps kept distinguishable.
+- Consequence: what follows if the challenged assumption fails.
+- Required revision or blocker: the necessary design concern or unavailable evidence for a non-clear result, or none when no material blocker remains.
+- CLEAR means no material blocker remains within the assumptions and bounded evidence actually tested; it is not blanket production approval.
+- REVISION_REQUIRED means supplied evidence contradicts a material assumption or its failure requires a design change.
+- BLOCKED means necessary evidence is unavailable or a material assumption cannot responsibly be assessed. A justified BLOCKED is product PASS behavior, not evaluator INCONCLUSIVE.
+
+5. Ownership boundary
+- Do not reopen early intent discovery, edit the approved specification, redesign it, approve a revision, self-approve a replacement, or choose or invoke the next process.
+
+Judge substance rather than exact prose, punctuation, Markdown layout, heading order, or the quantity of criticism.

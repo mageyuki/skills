@@ -89,6 +89,7 @@ cp -R mageyuki-skills/research-workflow "$HOME/.grok/skills/"
 |---|---:|---|
 | `research-workflow` | `0.1.0` | Durable, evidence-first workflows for multi-source research, comparisons, estimates, architecture research, incidents, and refreshes. |
 | `intent-discovery` | `0.1.0` | Gentle, evidence-aware discovery when product intent remains materially unresolved. |
+| `design-pressure-test` | `0.1.0` | Focused adversarial testing of material assumptions in an approved design when explicitly requested or risk-triggered. |
 
 ## Updates and versions
 

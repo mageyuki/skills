@@ -17,6 +17,13 @@
       "files": [
         "SKILL.md"
       ]
+    },
+    {
+      "name": "design-pressure-test",
+      "version": "0.1.0",
+      "files": [
+        "SKILL.md"
+      ]
     }
   ]
 }
