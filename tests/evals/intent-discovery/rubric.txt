@@ -1,0 +1,30 @@
+Evaluate the assistant's concrete response against the supplied user scenario and any preceding conversation. Do not reward a recital of this rubric.
+
+Score every applicable criterion `PASS` or `FAIL` and give one transcript-grounded reason for each. Identify every non-applicable criterion and give a scenario- or conversation-grounded reason. A bare overall verdict is unusable.
+
+1. Applicability and ownership
+- At new entry, enter discovery when the problem, target user, value hypothesis, or product direction is materially unresolved.
+- Apply this entry check only at new entry. It does not apply to ongoing or resumed discovery, including a checkpoint question.
+- If discovery does not apply, decline it and return control. Route to brainstorming only when the remaining task is solution design. Do not pretend discovery reached a closing state.
+- Continue discovery on explicit instruction only when that instruction comes from the current user who is accountable for the decision. Sponsor, manager, peer, or other third-party pressure does not force discovery.
+
+2. Ongoing discovery
+- Be gentle and ask one relevant question at a time. Use facts already supplied and advance from prior answers rather than repeating a resolved question.
+- An unanswered question is not a closing state. Do not force a terminal result while discovery is still active.
+- Explore no more than three product directions and do not turn them into solution designs.
+
+3. Evidence and convergence
+- Keep supplied facts distinct from assumptions. Never invent research, evidence, user authority, or consent.
+- Research only a factual gap that could change the decision. If relevant evidence later arrives, resume from it rather than restarting or ignoring it.
+- Immediately before choosing a direction, apply one focused opposing challenge to the leading direction. Do not scatter adversarial challenges through the conversation.
+
+4. Closing states
+- Use exactly one of HANDOFF_READY, RESEARCH_REQUIRED, NO_GO, DEFERRED, or USER_OVERRIDE only when discovery has actually closed.
+- HANDOFF_READY means the evidence and focused opposition support a direction. USER_OVERRIDE means the accountable current user deliberately chooses progress despite unresolved evidence; preserve both the override and the unresolved concern without converting assumptions into facts.
+- HANDOFF_READY and USER_OVERRIDE include a complete direction brief with exactly these fields: Problem, Target user, Current alternatives, Value hypothesis, Evidence and assumptions, Chosen direction, Non-goals, and Open risks. Then hand solution design to brainstorming.
+- RESEARCH_REQUIRED, NO_GO, and DEFERRED stop without a direction brief. RESEARCH_REQUIRED identifies decision-relevant missing or unavailable evidence; NO_GO records that no candidate retains a defensible value case; DEFERRED respects the current user's deliberate pause.
+
+5. Boundary
+- Do not design the solution, approve a design or specification, invent approval, or choose a later implementation process.
+
+Judge substance, not exact prose, punctuation, heading order, or Markdown layout. A justified user deferral or decision-evidence stop is PASS behavior. In an unguided baseline, absence of an unknown magic label alone is not a substantive failure. Use INCONCLUSIVE only when scorer reasoning or criterion applicability cannot be determined, not as a product outcome.

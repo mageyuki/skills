@@ -10,6 +10,13 @@
         "references/source-priority.md",
         "scripts/init_workspace.py"
       ]
+    },
+    {
+      "name": "intent-discovery",
+      "version": "0.1.0",
+      "files": [
+        "SKILL.md"
+      ]
     }
   ]
 }

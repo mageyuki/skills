@@ -14,12 +14,15 @@ SEMVER = re.compile(r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$")
 SAFE_NAME = re.compile(r"^[A-Za-z0-9._-]+$")
 
 _PRIVATE_MARKERS = (
-    ("private mageyuki home path", "/home/mageyuki"),
-    ("private repository identity", "mageyuki/opencode-config"),
-    ("service state filename", "service.json"),
-    ("private controller policy", "OpenCode is the sole Controller"),
+    ("private subagent workflow", "opencode-subagent-driven-development"),
+    ("private review workflow", "opencode-requesting-code-review"),
     ("private implementation lane", "implementer-architectural"),
     ("private review lane", "reviewer-critical"),
+    ("private repository identity", "mageyuki/opencode-config"),
+    ("private mageyuki home path", "/home/mageyuki"),
+    ("service state filename", "service.json"),
+    ("private integration workflow", "serial cherry-pick"),
+    ("private controller policy", "OpenCode is the sole Controller"),
 )
 _PRIVATE_PATTERNS = (
     ("user-specific absolute home path", re.compile(r"/(?:home|Users)/[^/\s]+/")),
@@ -34,8 +37,29 @@ _PRIVATE_PATTERNS = (
         "PEM private-key header",
         re.compile(r"-----BEGIN (?:[A-Z0-9]+ )*PRIVATE KEY-----"),
     ),
+    (
+        "private YAML permission key",
+        re.compile(r"(?m)^[ \t]*permission\s*:\s*(?:#.*)?$"),
+    ),
+    (
+        "private YAML permission action",
+        re.compile(
+            r"(?m)^[ \t]+(?:[^:\n]+:\s*)?(?:allow|ask|deny)\s*(?:#.*)?$"
+        ),
+    ),
 )
 _MARKDOWN_LINK = re.compile(r"!?\[[^\]]*\]\(([^)]+)\)")
+
+
+def public_privacy_errors(relative_path: str, text: str) -> list[str]:
+    errors: list[str] = []
+    for category, marker in _PRIVATE_MARKERS:
+        if marker in text:
+            errors.append(f"{category} in {relative_path}")
+    for category, pattern in _PRIVATE_PATTERNS:
+        if pattern.search(text):
+            errors.append(f"{category} in {relative_path}")
+    return errors
 
 
 def load_index(root: Path) -> dict[str, object]:
@@ -333,12 +357,7 @@ def validate_registry(root: Path, base_revision: str | None = None) -> list[str]
                 errors.append(f"non-UTF-8 payload file: {path.relative_to(root)}")
                 continue
             relative = path.relative_to(root)
-            for category, marker in _PRIVATE_MARKERS:
-                if marker in text:
-                    errors.append(f"{category} in {relative}")
-            for category, pattern in _PRIVATE_PATTERNS:
-                if pattern.search(text):
-                    errors.append(f"{category} in {relative}")
+            errors.extend(public_privacy_errors(relative.as_posix(), text))
             if path.suffix.lower() == ".md":
                 errors.extend(_relative_link_errors(skill_root, path, text))
 
@@ -690,28 +709,46 @@ class RegistryContractTests(unittest.TestCase):
         )
         self.assert_error_category(root, "unlisted payload file")
 
-    def test_private_policy_markers_are_rejected_without_echoing_values(self) -> None:
-        markers = (
-            "/home/" + "mageyuki/private",
-            "mageyuki/" + "opencode-config",
-            "service" + ".json",
-            "OpenCode is the sole " + "Controller",
-            "implementer-" + "architectural",
-            "reviewer-" + "critical",
-            "/Users/" + "someone/private",
+    def test_public_privacy_helper_reports_only_categories_and_paths(self) -> None:
+        # A leaked private marker or permission block must be rejected without echoing it.
+        fragments = (
+            (
+                "private subagent workflow",
+                "opencode-subagent-" + "driven-development",
+            ),
+            (
+                "private review workflow",
+                "opencode-requesting-" + "code-review",
+            ),
+            ("private implementation lane", "implementer-" + "architectural"),
+            ("private review lane", "reviewer-" + "critical"),
+            ("private repository identity", "mageyuki/" + "opencode-config"),
+            ("private mageyuki home path", "/home/" + "mageyuki"),
+            ("service state filename", "service" + ".json"),
+            ("private integration workflow", "serial " + "cherry-pick"),
+            (
+                "private controller policy",
+                "OpenCode is the sole " + "Controller",
+            ),
+            ("user-specific absolute home path", "/Users/" + "someone/private/"),
+            ("private YAML permission key", "permis" + "sion:\n"),
+            ("private YAML permission action", "  edit: " + "allow\n"),
         )
-        for marker in markers:
-            with self.subTest(marker_kind=marker.split("/")[0]):
-                root = self.make_registry()
-                (root / "research-workflow" / "SKILL.md").write_text(
-                    "---\nname: research-workflow\ndescription: Use when evidence is needed.\n---\n"
-                    + marker
-                    + "\n",
-                    encoding="utf-8",
-                )
-                errors = validate_registry(root)
-                self.assertTrue(any(" in research-workflow/SKILL.md" in error for error in errors))
-                self.assertTrue(all(marker not in error for error in errors))
+        for category, fragment in fragments:
+            with self.subTest(category=category):
+                errors = public_privacy_errors("portable.md", fragment)
+                self.assertEqual(errors, [f"{category} in portable.md"])
+                self.assertTrue(all(fragment not in error for error in errors))
+
+    def test_public_privacy_helper_accepts_portable_controller_prose(self) -> None:
+        # Ordinary portable controller prose must not be mistaken for private policy.
+        self.assertEqual(
+            public_privacy_errors(
+                "portable.md",
+                "A controller may coordinate the next portable step.",
+            ),
+            [],
+        )
 
     def test_credential_literal_categories_are_rejected_without_echoing_values(self) -> None:
         literals = (

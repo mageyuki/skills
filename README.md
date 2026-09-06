@@ -88,6 +88,7 @@ cp -R mageyuki-skills/research-workflow "$HOME/.grok/skills/"
 | Skill | Version | Purpose |
 |---|---:|---|
 | `research-workflow` | `0.1.0` | Durable, evidence-first workflows for multi-source research, comparisons, estimates, architecture research, incidents, and refreshes. |
+| `intent-discovery` | `0.1.0` | Gentle, evidence-aware discovery when product intent remains materially unresolved. |
 
 ## Updates and versions
 

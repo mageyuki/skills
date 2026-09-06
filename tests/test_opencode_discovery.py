@@ -16,8 +16,7 @@ from typing import Iterator
 
 
 ROOT = Path(__file__).resolve().parents[1]
-EXPECTED_OPENCODE_VERSION = "1.18.27"
-SKILL_NAME = "research-workflow"
+EXPECTED_OPENCODE_VERSION = "1.18.29"
 
 
 class QuietHandler(http.server.SimpleHTTPRequestHandler):
@@ -43,6 +42,43 @@ def serve(directory: Path) -> Iterator[http.server.ThreadingHTTPServer]:
 
 def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def catalog(index: dict[str, object]) -> dict[str, dict[str, object]]:
+    skills = index["skills"]
+    assert isinstance(skills, list)
+    return {
+        str(entry["name"]): entry
+        for entry in skills
+        if isinstance(entry, dict)
+    }
+
+
+def expected_versions(index: dict[str, object]) -> dict[str, str]:
+    return {
+        name: str(entry["version"])
+        for name, entry in catalog(index).items()
+    }
+
+
+def assert_cached_registry_matches(
+    source_root: Path, cache_root: Path, index: dict[str, object]
+) -> None:
+    for name, entry in catalog(index).items():
+        cache_skill = cache_root / "opencode" / "skills" / name
+        skill_file = cache_skill / "SKILL.md"
+        version_file = cache_skill / ".opencode-version"
+        assert skill_file.is_file() and not skill_file.is_symlink(), skill_file
+        assert version_file.is_file() and not version_file.is_symlink(), version_file
+        assert version_file.read_text(encoding="utf-8").strip() == str(entry["version"])
+
+        files = entry["files"]
+        assert isinstance(files, list)
+        for file_name in files:
+            assert isinstance(file_name, str)
+            cached_file = cache_skill / file_name
+            assert cached_file.is_file() and not cached_file.is_symlink(), cached_file
+            assert sha256(cached_file) == sha256(source_root / name / file_name)
 
 
 class OpenCodeDiscoveryTests(unittest.TestCase):
@@ -136,27 +172,22 @@ class OpenCodeDiscoveryTests(unittest.TestCase):
         self.assertIsInstance(decoded, list)
         return [entry for entry in decoded if isinstance(entry, dict)]
 
-    def assert_cached_payload_matches(
-        self, source_root: Path, cache_skill: Path, index: dict[str, object]
+    def assert_discovery_matches_catalog(
+        self,
+        entries: list[dict[str, object]],
+        cache_root: Path,
+        index: dict[str, object],
     ) -> None:
-        skills = index["skills"]
-        assert isinstance(skills, list)
-        skill = next(
-            entry
-            for entry in skills
-            if isinstance(entry, dict) and entry.get("name") == SKILL_NAME
-        )
-        files = skill["files"]
-        assert isinstance(files, list)
-        for file_name in files:
-            assert isinstance(file_name, str)
+        for name in catalog(index):
+            matches = [entry for entry in entries if entry.get("name") == name]
+            self.assertEqual(len(matches), 1, f"expected one discovery match for {name}")
             self.assertEqual(
-                sha256(cache_skill / file_name),
-                sha256(source_root / SKILL_NAME / file_name),
-                f"cached hash differs for {file_name}",
+                matches[0].get("location"),
+                str(cache_root / "opencode" / "skills" / name / "SKILL.md"),
             )
 
     def test_local_registry_download_and_atomic_refresh(self) -> None:
+        # A multi-skill registry must download, discover, and atomically refresh by name.
         executable = self.require_supported_opencode()
         with tempfile.TemporaryDirectory() as temporary:
             base = Path(temporary)
@@ -172,55 +203,62 @@ class OpenCodeDiscoveryTests(unittest.TestCase):
                     f"http://127.0.0.1:{server.server_port}/",
                 )
                 entries = self.run_debug_skill(executable, environment, working)
-                matches = [entry for entry in entries if entry.get("name") == SKILL_NAME]
-                self.assertEqual(len(matches), 1)
-                expected_skill_file = cache_root / "opencode" / "skills" / SKILL_NAME / "SKILL.md"
-                self.assertEqual(matches[0].get("location"), str(expected_skill_file))
+                self.assert_discovery_matches_catalog(entries, cache_root, index)
+                assert_cached_registry_matches(served, cache_root, index)
 
-                cache_skill = expected_skill_file.parent
-                self.assertEqual(
-                    (cache_skill / ".opencode-version").read_text(encoding="utf-8").strip(),
-                    "0.1.0",
-                )
-                self.assert_cached_payload_matches(served, cache_skill, index)
-
+                original_versions = expected_versions(index)
+                refresh_name = sorted(catalog(index))[0]
+                refresh_entry = catalog(index)[refresh_name]
+                self.assertEqual(refresh_entry["version"], "0.1.0")
                 marker = "\nAtomic refresh marker.\n"
-                served_skill = served / SKILL_NAME / "SKILL.md"
+                served_skill = served / refresh_name / "SKILL.md"
                 served_skill.write_text(
                     served_skill.read_text(encoding="utf-8") + marker,
                     encoding="utf-8",
                 )
-                index["skills"][0]["version"] = "0.1.1"  # type: ignore[index]
+                refresh_entry["version"] = "0.1.1"
+                updated_versions = dict(original_versions)
+                updated_versions[refresh_name] = "0.1.1"
+                self.assertEqual(expected_versions(index), updated_versions)
                 (served / "index.json").write_text(
                     json.dumps(index, indent=2) + "\n", encoding="utf-8"
                 )
 
                 refreshed_entries = self.run_debug_skill(executable, environment, working)
-                refreshed_matches = [
-                    entry for entry in refreshed_entries if entry.get("name") == SKILL_NAME
-                ]
-                self.assertEqual(len(refreshed_matches), 1)
+                self.assert_discovery_matches_catalog(refreshed_entries, cache_root, index)
+                expected_skill_file = (
+                    cache_root / "opencode" / "skills" / refresh_name / "SKILL.md"
+                )
+                cache_skill = expected_skill_file.parent
                 self.assertIn(marker.strip(), expected_skill_file.read_text(encoding="utf-8"))
                 self.assertEqual(
                     (cache_skill / ".opencode-version").read_text(encoding="utf-8").strip(),
                     "0.1.1",
                 )
+                assert_cached_registry_matches(served, cache_root, index)
                 self.assertFalse(
-                    list(cache_skill.parent.glob(f"{SKILL_NAME}.tmp-*")),
+                    list(cache_skill.parent.glob(f"{refresh_name}.tmp-*")),
                     "temporary refresh directory remains",
                 )
                 self.assertFalse(
-                    list(cache_skill.parent.glob(f"{SKILL_NAME}.old-*")),
+                    list(cache_skill.parent.glob(f"{refresh_name}.old-*")),
                     "old refresh directory remains",
                 )
 
     def test_external_registry_when_configured(self) -> None:
+        # An external registry must expose exactly the locally expected skill catalog.
         registry_url = os.environ.get("REGISTRY_TEST_URL")
         if not registry_url:
             self.skipTest("REGISTRY_TEST_URL is not configured")
-        expected_version = os.environ.get("REGISTRY_EXPECTED_VERSION")
-        if not expected_version:
-            self.fail("REGISTRY_EXPECTED_VERSION is required with REGISTRY_TEST_URL")
+        expected_catalog_text = os.environ.get("REGISTRY_EXPECTED_CATALOG")
+        if not expected_catalog_text:
+            self.fail("REGISTRY_EXPECTED_CATALOG is required with REGISTRY_TEST_URL")
+        try:
+            expected_catalog = json.loads(expected_catalog_text)
+        except json.JSONDecodeError:
+            self.fail("REGISTRY_EXPECTED_CATALOG must be valid JSON")
+        local_index = json.loads((ROOT / "index.json").read_text(encoding="utf-8"))
+        self.assertEqual(expected_catalog, expected_versions(local_index))
         executable = self.require_supported_opencode()
 
         with tempfile.TemporaryDirectory() as temporary:
@@ -230,25 +268,19 @@ class OpenCodeDiscoveryTests(unittest.TestCase):
             environment, config_root, cache_root = self.isolated_environment(base / "xdg")
             self.write_config(config_root, registry_url)
             entries = self.run_debug_skill(executable, environment, working)
-            matches = [entry for entry in entries if entry.get("name") == SKILL_NAME]
-            self.assertEqual(len(matches), 1)
-
-            cache_skill = cache_root / "opencode" / "skills" / SKILL_NAME
-            self.assertEqual(matches[0].get("location"), str(cache_skill / "SKILL.md"))
-            self.assertEqual(
-                (cache_skill / ".opencode-version").read_text(encoding="utf-8").strip(),
-                expected_version,
-            )
-            index = json.loads((ROOT / "index.json").read_text(encoding="utf-8"))
-            self.assert_cached_payload_matches(ROOT, cache_skill, index)
+            self.assert_discovery_matches_catalog(entries, cache_root, local_index)
+            assert_cached_registry_matches(ROOT, cache_root, local_index)
 
             research_home = base / "research"
             initializer_environment = environment.copy()
             initializer_environment["RESEARCH_HOME"] = str(research_home)
+            research_cache_skill = (
+                cache_root / "opencode" / "skills" / "research-workflow"
+            )
             result = subprocess.run(
                 [
                     sys.executable,
-                    str(cache_skill / "scripts" / "init_workspace.py"),
+                    str(research_cache_skill / "scripts" / "init_workspace.py"),
                     "public-endpoint-smoke",
                 ],
                 cwd=working,
