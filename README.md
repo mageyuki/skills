@@ -6,9 +6,29 @@ This repository is a public Agent Skills-compatible collection maintained by mag
 
 ## Install
 
-### OpenCode
+### Install one skill with the CLI
 
-Add the raw registry root to your OpenCode configuration:
+The third-party [Vercel Labs `skills` CLI](https://github.com/vercel-labs/skills/blob/main/README.md) can install one registered skill at a time. Choose the command for the skill you want; do not run all three unless you want all three skills:
+
+```bash
+npx skills add mageyuki/skills --skill research-workflow
+npx skills add mageyuki/skills --skill intent-discovery
+npx skills add mageyuki/skills --skill design-pressure-test
+```
+
+`--skill` selects one registered skill. The CLI can prompt for the target agent, or you can specify one with `-a`:
+
+```bash
+npx skills add mageyuki/skills --skill intent-discovery -a opencode
+```
+
+Installation defaults to the current project. Add `-g` for a user-wide installation. Do not combine a local CLI installation with remote registration of the same skill below.
+
+Selecting a skill does not install workflows it references. `intent-discovery` calls `research-workflow` when research is needed and hands off to a separately supplied `brainstorming` skill; install those separately when needed. This repository does not supply `brainstorming`.
+
+### OpenCode: register all listed skills remotely
+
+As an alternative to selecting individual local copies with `--skill`, add the raw registry root to your OpenCode configuration. This registers every skill listed in this repository's remote index; it does not perform `--skill` selection:
 
 ```jsonc
 {
@@ -20,25 +40,18 @@ Add the raw registry root to your OpenCode configuration:
 }
 ```
 
-Fully quit and restart OpenCode after changing its configuration.
+Do not combine this with local copies of the same skills. Fully quit and restart OpenCode after changing its configuration.
 
-### Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor, and Grok Build
-
-#### Optional installer
-
-The third-party [Vercel Labs `skills` CLI](https://skills.sh/docs/cli) can install `research-workflow` for all six agents in the current project:
-
-```bash
-npx skills add mageyuki/skills --skill research-workflow -a claude-code -a codex -a gemini-cli -a github-copilot -a cursor -a grok -y
-```
-
-#### Native install
+### Native install for Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor, and Grok Build
 
 Clone the repository and copy the complete skill directory so its `scripts/` and `references/` remain available:
 
 ```bash
 git clone --depth 1 https://github.com/mageyuki/skills.git mageyuki-skills
+skill=intent-discovery
 ```
+
+The other valid values are `research-workflow` and `design-pressure-test`. In the same shell, the selected `skill` value applies to whichever one agent-group pair you run below.
 
 | Agent | Project directory | User directory | Reload or check |
 |---|---|---|---|
@@ -54,15 +67,15 @@ For a project installation, run only the pair for your agent group:
 ```bash
 # Claude Code
 mkdir -p .claude/skills
-cp -R mageyuki-skills/research-workflow .claude/skills/
+cp -R "mageyuki-skills/$skill" .claude/skills/
 
 # Codex, Gemini CLI, GitHub Copilot, or Cursor
 mkdir -p .agents/skills
-cp -R mageyuki-skills/research-workflow .agents/skills/
+cp -R "mageyuki-skills/$skill" .agents/skills/
 
 # Grok Build
 mkdir -p .grok/skills
-cp -R mageyuki-skills/research-workflow .grok/skills/
+cp -R "mageyuki-skills/$skill" .grok/skills/
 ```
 
 For a user installation, run only the pair for your agent group:
@@ -70,15 +83,15 @@ For a user installation, run only the pair for your agent group:
 ```bash
 # Claude Code
 mkdir -p "$HOME/.claude/skills"
-cp -R mageyuki-skills/research-workflow "$HOME/.claude/skills/"
+cp -R "mageyuki-skills/$skill" "$HOME/.claude/skills/"
 
 # Codex, Gemini CLI, GitHub Copilot, or Cursor
 mkdir -p "$HOME/.agents/skills"
-cp -R mageyuki-skills/research-workflow "$HOME/.agents/skills/"
+cp -R "mageyuki-skills/$skill" "$HOME/.agents/skills/"
 
 # Grok Build
 mkdir -p "$HOME/.grok/skills"
-cp -R mageyuki-skills/research-workflow "$HOME/.grok/skills/"
+cp -R "mageyuki-skills/$skill" "$HOME/.grok/skills/"
 ```
 
 `Grok Build` means the official xAI `grok` coding agent from [x.ai/cli](https://x.ai/cli/).
