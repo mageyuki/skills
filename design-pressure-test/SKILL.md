@@ -27,6 +27,7 @@ If either required input is absent, name the missing input and stop rather than 
 1. Identify only material assumptions.
    - Include assumptions about value, feasibility, safety, integrity, dependencies, migration, rollback, or operations only when failure could require a design change or prevent responsible assessment.
    - Ignore immaterial details and already-supported claims except to record why their bounded evidence is adequate.
+   - Routine correctness and implementation details belong to implementation or code-review testing unless the supplied record establishes a specific design-changing risk; missing low-level test artifacts alone do not establish that risk.
 2. Test each material assumption.
    - State one strongest focused challenge.
    - State the concrete observation that would falsify the assumption.
@@ -34,6 +35,7 @@ If either required input is absent, name the missing input and stop rather than 
 3. Assess the supplied record.
    - Separate supplied facts and observations from inference and missing evidence.
    - Compare the actual evidence with the falsifying observation. Never invent tests, results, guarantees, or consent.
+   - Treat supplied passing checks as bounded evidence rather than demanding invented checks. If no material unsupported assumption remains after the filter, select `CLEAR` within the stated scope.
 4. Select exactly one outcome.
    - Contradicted material assumption or necessary design change: `REVISION_REQUIRED`.
    - Necessary evidence is unavailable, so responsible assessment cannot finish: `BLOCKED`.
