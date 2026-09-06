@@ -10,9 +10,21 @@ This repository is a public Agent Skills-compatible collection maintained by mag
 
 The third-party [Vercel Labs `skills` CLI](https://github.com/vercel-labs/skills/blob/main/README.md) can install one registered skill at a time. Choose the command for the skill you want; do not run all three unless you want all three skills:
 
+**`research-workflow`**
+
 ```bash
 npx skills add mageyuki/skills --skill research-workflow
+```
+
+**`intent-discovery`**
+
+```bash
 npx skills add mageyuki/skills --skill intent-discovery
+```
+
+**`design-pressure-test`**
+
+```bash
 npx skills add mageyuki/skills --skill design-pressure-test
 ```
 
@@ -67,15 +79,15 @@ For a project installation, run only the pair for your agent group:
 ```bash
 # Claude Code
 mkdir -p .claude/skills
-cp -R "mageyuki-skills/$skill" .claude/skills/
+cp -R "mageyuki-skills/${skill:?Select a skill first}" .claude/skills/
 
 # Codex, Gemini CLI, GitHub Copilot, or Cursor
 mkdir -p .agents/skills
-cp -R "mageyuki-skills/$skill" .agents/skills/
+cp -R "mageyuki-skills/${skill:?Select a skill first}" .agents/skills/
 
 # Grok Build
 mkdir -p .grok/skills
-cp -R "mageyuki-skills/$skill" .grok/skills/
+cp -R "mageyuki-skills/${skill:?Select a skill first}" .grok/skills/
 ```
 
 For a user installation, run only the pair for your agent group:
@@ -83,15 +95,15 @@ For a user installation, run only the pair for your agent group:
 ```bash
 # Claude Code
 mkdir -p "$HOME/.claude/skills"
-cp -R "mageyuki-skills/$skill" "$HOME/.claude/skills/"
+cp -R "mageyuki-skills/${skill:?Select a skill first}" "$HOME/.claude/skills/"
 
 # Codex, Gemini CLI, GitHub Copilot, or Cursor
 mkdir -p "$HOME/.agents/skills"
-cp -R "mageyuki-skills/$skill" "$HOME/.agents/skills/"
+cp -R "mageyuki-skills/${skill:?Select a skill first}" "$HOME/.agents/skills/"
 
 # Grok Build
 mkdir -p "$HOME/.grok/skills"
-cp -R "mageyuki-skills/$skill" "$HOME/.grok/skills/"
+cp -R "mageyuki-skills/${skill:?Select a skill first}" "$HOME/.grok/skills/"
 ```
 
 `Grok Build` means the official xAI `grok` coding agent from [x.ai/cli](https://x.ai/cli/).
