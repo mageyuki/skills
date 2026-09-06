@@ -28,16 +28,7 @@ EXPECTED_CASE_IDS = (
     "discover-deferred",
     "discover-handoff-ready",
 )
-EXPECTED_CONVERSATIONS = {
-    "question-cadence": (
-        "We have six weeks to launch an AI planner for independent consultants. The team has built calendar sync, but we still cannot state which recurring planning problem is worth solving. What should we do next?",
-        "We interviewed no users yet. We only know three consultants currently stitch together calendars and spreadsheets; keep going from that context and ask what matters next rather than choosing the product for us.",
-    ),
-    "research-resumption": (
-        "We must choose whether an outage assistant starts with hospital IT or small SaaS teams. We have no comparative evidence about incident frequency, switching cost, or willingness to pilot, and leadership wants a decision today.",
-        "Here are the frozen interview findings: nine of ten small SaaS teams report weekly paging pain and seven would pilot; eight hospital IT teams report nine-to-eighteen-month procurement and none will pilot before certification. Resume discovery with this evidence.",
-    ),
-}
+EXPECTED_CONVERSATION_IDS = ("question-cadence", "research-resumption")
 TERMINALS = {
     "HANDOFF_READY",
     "RESEARCH_REQUIRED",
@@ -157,13 +148,23 @@ class IntentDiscoveryContractTests(unittest.TestCase):
                 self.assertFalse(any(value in scenario.lower() for value in forbidden))
 
     def test_conversations_are_fixed_user_turns_only(self) -> None:
-        # A fabricated assistant turn or changed follow-up context must fail.
+        # An unexpected ID, malformed row, empty turn, or role-prefixed value must fail.
         rows = self.tsv_rows(CONVERSATIONS)
         self.assertTrue(all(len(row) == 3 for row in rows))
-        self.assertEqual(
-            {row[0]: row[1:] for row in rows},
-            EXPECTED_CONVERSATIONS,
-        )
+        self.assertEqual(tuple(row[0] for row in rows), EXPECTED_CONVERSATION_IDS)
+        for conversation_id, *turns in rows:
+            with self.subTest(conversation_id=conversation_id):
+                self.assertTrue(all(turn.strip() for turn in turns))
+                self.assertTrue(
+                    all(
+                        re.match(
+                            r"(?i)^(?:assistant|system|developer|tool)\s*:",
+                            turn.strip(),
+                        )
+                        is None
+                        for turn in turns
+                    )
+                )
 
     def test_public_evaluation_sources_do_not_leak_private_data(self) -> None:
         # Every present public evaluation artifact must reject private evidence.
@@ -184,7 +185,7 @@ class IntentDiscoveryContractTests(unittest.TestCase):
     def test_evaluation_report_covers_every_public_fixture(self) -> None:
         # A final report that omits an original case or conversation must fail.
         evaluation_text = self.required_text(EVALUATION_DOCUMENT)
-        for fixture_id in (*EXPECTED_CASE_IDS, *EXPECTED_CONVERSATIONS):
+        for fixture_id in (*EXPECTED_CASE_IDS, *EXPECTED_CONVERSATION_IDS):
             with self.subTest(fixture_id=fixture_id):
                 self.assertIn(fixture_id, evaluation_text)
 

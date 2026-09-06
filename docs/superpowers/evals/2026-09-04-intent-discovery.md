@@ -6,8 +6,8 @@ This document preserves incomplete evaluation work. It is not a release PASS, be
 
 ## Current artifacts
 
-- Skill: `intent-discovery` version `0.1.0`, 81-line draft, with `SKILL.md` as its registered payload.
-- Skill SHA-256: `483ec37f56dee89d9b018c8b5876c6e02e4ca750d42beb854460c93318cfd96b`.
+- Skill: `intent-discovery` version `0.1.0`, 82-line draft, with `SKILL.md` as its registered payload.
+- Skill SHA-256: `086864b280e8a1d13addc964641c35945af1d2b6921a0d633d22e6a124bc8dec`.
 - Cases SHA-256: `bdb8fb968a981968f32c0d1e6020cc9cf9531105e1a8b2d954f7462c1c93141e`.
 - Conversations SHA-256: `174d19ca71ef95709bfb61dd8f9b74c2357d28feaa127843026e3b9ccdc246a9`.
 - Canonical rubric SHA-256: `e23c7d4e3647d33a7675f02f00f71cdfd2c882b5504bd2b20c6559fbdf68514a`.
@@ -50,6 +50,14 @@ These observations came from earlier revisions and are not promoted to current-f
 - One earlier `discover-evidence-resumed-override` scoring attempt timed out, and one diagnosed retry succeeded. A later `discover-handoff-ready` score attempt and its single diagnosed retry both ended in operation errors.
 
 The wording repeat was targeted and limited. It is not a statistical UX guarantee, and no inference is made for pressure scenarios that were not run against the current-final bytes.
+
+## Scoped draft-review changes
+
+- New entry now distinguishes non-product-intent work, established intent with only solution design remaining, and unresolved product intent. The first returns control without a terminal; only the second passes to `brainstorming`; the third enters discovery.
+- A supplied in-progress discovery record is treated as ongoing context. A record showing that the focused checkpoint already survived can close when the terminal condition is met rather than bouncing merely because the four core inputs are established. The skill does not infer a record or consent.
+- Registry privacy validation now has an integrated temporary-payload test, and conversation contract tests keep fixture prose solely in the TSV while checking IDs, shape, nonempty turns, and user-only role shape.
+
+No external behavioral rerun followed these scoped changes. Status remains BLOCKED, and the deterministic checks do not establish behavioral correctness.
 
 ## Blocker and remaining release gate
 

@@ -13,12 +13,13 @@ Discover a bounded, evidence-aware product direction before solution design.
 
 ## Classify
 
-Classify only when entering discovery. On later turns, resume the current step; newly supplied facts update the picture but do not restart classification or skip the remaining discovery steps.
+Classify only at new entry. On later turns, or when an in-progress discovery record is supplied, resume its current step; newly supplied facts update the picture but do not restart classification. If the supplied record shows that the focused checkpoint already survived, close with `HANDOFF_READY` when its condition is met instead of bouncing merely because all four core inputs are now established. Do not invent a discovery record or user consent.
 
-Build the current picture from the conversation: problem, target user, value hypothesis, and product direction. Current alternatives are today's incumbent tools or workarounds, not candidate product directions. Use supplied alternatives; do not invent them. Use current alternatives to test the value hypothesis.
+At new entry without such a record, build the current picture from the conversation: problem, target user, value hypothesis, and product direction. Current alternatives are today's incumbent tools or workarounds, not candidate product directions. Use supplied alternatives; do not invent them. Use current alternatives to test the value hypothesis.
 
-- If any of these four core intent inputs is materially unresolved, continue discovery.
-- If all core inputs are established or only solution shape remains, say discovery is not needed and pass the established intent to `brainstorming` without a closing token.
+- If the task is not a product-intent decision, such as a concrete defect with known expected behavior, say discovery does not apply and return control without a closing token.
+- If all core inputs are established and only solution design remains, say discovery is not needed and pass the established intent to `brainstorming` without a closing token.
+- If any core intent input is materially unresolved, continue discovery.
 - The current user who is accountable for the decision may explicitly ask to continue discovery. Pressure attributed to a sponsor, manager, peer, or other third party does not make that choice for them.
 
 ## Ongoing turns

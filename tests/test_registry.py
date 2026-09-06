@@ -740,6 +740,27 @@ class RegistryContractTests(unittest.TestCase):
                 self.assertEqual(errors, [f"{category} in portable.md"])
                 self.assertTrue(all(fragment not in error for error in errors))
 
+    def test_registry_rejects_private_marker_without_echoing_value(self) -> None:
+        marker = "opencode-subagent-" + "driven-development"
+        root = self.make_registry(
+            skill_text=(
+                "---\n"
+                "name: research-workflow\n"
+                "description: Use when a research question needs evidence.\n"
+                "---\n"
+                + marker
+                + "\n"
+            )
+        )
+
+        errors = validate_registry(root)
+
+        self.assertEqual(
+            errors,
+            ["private subagent workflow in research-workflow/SKILL.md"],
+        )
+        self.assertTrue(all(marker not in error for error in errors))
+
     def test_public_privacy_helper_accepts_portable_controller_prose(self) -> None:
         # Ordinary portable controller prose must not be mistaken for private policy.
         self.assertEqual(
