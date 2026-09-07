@@ -20,10 +20,18 @@ For every material source, record:
 - tenant, project, environment, region, version, and date scope;
 - supported claims and the last retrieval error, when present.
 
-Never infer current tenant state from public documentation. If authenticated tenant evidence cannot be refreshed, preserve its last-known value, mark it stale or unauthenticated, identify affected conclusions, and stop that research branch.
+Never infer current tenant state from public documentation. If required authentication is absent or expired, preserve the last-known evidence, mark it unauthenticated, identify affected conclusions, and stop that research branch. Never present the retained value as current or substitute public data for tenant state.
 
 ## Bounded retrieval
 
-Before retrieval, state the question or falsifiable hypothesis. Request only the required tenant, project, environment, region, date range, fields, page size, and total result count. Prefer aggregates and summaries over raw streams. Stop when authoritative sources converge, remaining uncertainty is bounded, more detail cannot change the decision, or the agreed scope is exhausted.
+Before retrieval, state the question or falsifiable hypothesis. Request only the required tenant, project, environment, region, date range, fields, page size, and total result count. Prefer aggregates and summaries over raw streams.
+
+## Stopping criteria
+
+- **Sufficient evidence:** stop when authoritative sources converge and residual uncertainty cannot change the decision.
+- **Scope exhausted:** stop at the agreed boundary, but keep material unanswered questions and their decision impact explicit; exhaustion does not mean every question is answered.
+- **Authentication unavailable:** stop the affected tenant branch and follow the preservation rules above.
+
+Record the stop reason, unresolved questions, and decision impact in the existing `state.md` sections and final `changes.md` entry.
 
 Keep credentials, tokens, unnecessary personal data, and raw secret-bearing payloads out of artifacts. External create, update, delete, publish, deploy, or synchronization actions require explicit user authorization and confirmation of success.

@@ -13,6 +13,22 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 
+LIST_FIELDS = {"scope", "out_of_scope", "questions", "source_status", "artifacts"}
+STRING_FIELDS = {
+    "project_key",
+    "topic_slug",
+    "title",
+    "status",
+    "phase",
+    "created_at",
+    "updated_at",
+    "goal",
+    "current_question",
+    "current_conclusion",
+    "next_action",
+}
+
+
 def run_git(cwd: Path, *args: str) -> str | None:
     try:
         result = subprocess.run(
@@ -82,6 +98,34 @@ def resolve_within_root(path: Path, root: Path) -> Path:
     return resolved
 
 
+def validate_manifest(manifest: object) -> dict[str, object]:
+    if not isinstance(manifest, dict):
+        raise SystemExit("Invalid existing manifest: root must be a JSON object")
+
+    required = {"schema_version"} | LIST_FIELDS | STRING_FIELDS
+    for field in sorted(required):
+        if field not in manifest:
+            raise SystemExit(
+                f"Invalid existing manifest: missing required field '{field}'"
+            )
+
+    if type(manifest["schema_version"]) is not int or manifest["schema_version"] != 2:
+        raise SystemExit(
+            "Invalid existing manifest: field 'schema_version' must be the integer 2"
+        )
+    for field in sorted(LIST_FIELDS):
+        if not isinstance(manifest[field], list):
+            raise SystemExit(
+                f"Invalid existing manifest: field '{field}' must be a list"
+            )
+    for field in sorted(STRING_FIELDS):
+        if not isinstance(manifest[field], str):
+            raise SystemExit(
+                f"Invalid existing manifest: field '{field}' must be a string"
+            )
+    return manifest
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("slug", help="Stable topic slug")
@@ -99,19 +143,17 @@ def main() -> int:
     slug = sanitize(args.slug)
     key = sanitize(args.project_key) if args.project_key else derive_project_key(cwd)
     target = resolve_within_root(root / key / slug, root)
-
-    target.mkdir(parents=True, exist_ok=True)
-    resolve_within_root(target / "research", root).mkdir(exist_ok=True)
-    resolve_within_root(target / "runs", root).mkdir(exist_ok=True)
-
     stamp = now_iso()
     manifest_path = target / "manifest.json"
     resolve_within_root(manifest_path, root)
     if manifest_path.exists():
         try:
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError as exc:
-            raise SystemExit(f"Invalid existing manifest: {manifest_path}: {exc}") from exc
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise SystemExit(
+                "Invalid existing manifest: manifest.json must contain valid JSON"
+            ) from exc
+        manifest = validate_manifest(manifest)
         manifest["updated_at"] = stamp
     else:
         manifest = {
@@ -139,6 +181,10 @@ def main() -> int:
             ],
             "next_action": "",
         }
+
+    target.mkdir(parents=True, exist_ok=True)
+    resolve_within_root(target / "research", root).mkdir(exist_ok=True)
+    resolve_within_root(target / "runs", root).mkdir(exist_ok=True)
 
     manifest_path.write_text(
         json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
