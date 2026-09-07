@@ -427,6 +427,8 @@ class ResearchWorkspaceInitializerTests(unittest.TestCase):
         invalid_cases: list[tuple[str, object, str]] = [
             ("root", [], "root must be a JSON object"),
             ("schema type", {**self.valid_manifest(), "schema_version": True}, "schema_version"),
+            ("schema float", {**self.valid_manifest(), "schema_version": 2.0}, "schema_version"),
+            ("schema string", {**self.valid_manifest(), "schema_version": "2"}, "schema_version"),
             ("schema version", {**self.valid_manifest(), "schema_version": 3}, "schema_version"),
             ("missing key", {key: value for key, value in self.valid_manifest().items() if key != "goal"}, "goal"),
         ]
@@ -481,6 +483,7 @@ class ResearchWorkspaceInitializerTests(unittest.TestCase):
             self.assertEqual(resumed["source_status"], manifest["source_status"])
             self.assertEqual(resumed["extension"], manifest["extension"])
             self.assertEqual(brief.read_text(encoding="utf-8"), "retained research brief\n")
+            self.assertNotEqual(resumed["updated_at"], manifest["updated_at"])
             self.assertRegex(resumed["updated_at"], UTC_TIMESTAMP)
 
     def test_malicious_slug_is_sanitized_to_one_path_segment(self) -> None:
