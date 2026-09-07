@@ -423,6 +423,50 @@ class ResearchWorkspaceInitializerTests(unittest.TestCase):
             self.assertEqual((target / "manifest.json").read_bytes(), original)
             self.assertEqual({path.name for path in target.iterdir()}, {"manifest.json"})
 
+    def test_manifest_diagnostics_are_stable_across_hash_seeds(self) -> None:
+        cases = [
+            (
+                "missing fields",
+                {"schema_version": 2},
+                "Invalid existing manifest: missing required field 'artifacts'",
+            ),
+            (
+                "list fields",
+                {
+                    **self.valid_manifest(),
+                    "artifacts": "wrong",
+                    "questions": "wrong",
+                },
+                "Invalid existing manifest: field 'artifacts' must be a list",
+            ),
+            (
+                "string fields",
+                {**self.valid_manifest(), "goal": [], "status": []},
+                "Invalid existing manifest: field 'goal' must be a string",
+            ),
+        ]
+        for name, manifest, expected_error in cases:
+            for seed in ("0", "1", "2"):
+                with self.subTest(name=name, hash_seed=seed):
+                    environment = os.environ.copy()
+                    environment["PYTHONHASHSEED"] = seed
+                    environment["PYTHONDONTWRITEBYTECODE"] = "1"
+                    command = (
+                        "import runpy; "
+                        f"validate = runpy.run_path({str(INITIALIZER)!r})['validate_manifest']; "
+                        f"validate({manifest!r})"
+                    )
+                    result = subprocess.run(
+                        [sys.executable, "-c", command],
+                        env=environment,
+                        check=False,
+                        text=True,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                    )
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertEqual(result.stderr.strip(), expected_error)
+
     def test_invalid_manifest_shapes_are_rejected_without_mutation(self) -> None:
         invalid_cases: list[tuple[str, object, str]] = [
             ("root", [], "root must be a JSON object"),

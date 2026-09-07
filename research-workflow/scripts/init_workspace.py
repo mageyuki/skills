@@ -103,7 +103,7 @@ def validate_manifest(manifest: object) -> dict[str, object]:
         raise SystemExit("Invalid existing manifest: root must be a JSON object")
 
     required = {"schema_version"} | LIST_FIELDS | STRING_FIELDS
-    for field in required:
+    for field in sorted(required):
         if field not in manifest:
             raise SystemExit(
                 f"Invalid existing manifest: missing required field '{field}'"
@@ -113,12 +113,12 @@ def validate_manifest(manifest: object) -> dict[str, object]:
         raise SystemExit(
             "Invalid existing manifest: field 'schema_version' must be the integer 2"
         )
-    for field in LIST_FIELDS:
+    for field in sorted(LIST_FIELDS):
         if not isinstance(manifest[field], list):
             raise SystemExit(
                 f"Invalid existing manifest: field '{field}' must be a list"
             )
-    for field in STRING_FIELDS:
+    for field in sorted(STRING_FIELDS):
         if not isinstance(manifest[field], str):
             raise SystemExit(
                 f"Invalid existing manifest: field '{field}' must be a string"
