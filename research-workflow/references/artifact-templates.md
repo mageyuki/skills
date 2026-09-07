@@ -65,6 +65,10 @@ Append one entry after each research cycle.
 - Next action:
 ```
 
+Within a cycle, persist detailed evidence, assumptions, calculations, and conclusions first; update their compact `manifest.json` and `state.md` summaries second; append this change entry last. If records conflict, use original evidence, scope, and retrieval times to reconcile them, and leave unresolved discrepancies explicit.
+
+When stopping, use the existing `state.md` sections to record the reason, unresolved questions, and decision impact; mirror those deltas in the final `changes.md` entry. Scope exhaustion can leave material questions unanswered. For an unauthenticated tenant source, retain last-known evidence under `Stale, unavailable, or unauthenticated sources` but do not describe it as current.
+
 ## facts.csv
 
 ```csv

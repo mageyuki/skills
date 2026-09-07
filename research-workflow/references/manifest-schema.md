@@ -84,5 +84,6 @@ Source status is:
 - Update entries instead of duplicating them.
 - Never erase a last-known value solely because refresh failed.
 - Mark replaced evidence superseded rather than deleting its history.
+- Within each cycle, first persist detailed evidence, assumptions, calculations, and conclusions in their dedicated artifacts; then update the corresponding compact manifest and `state.md` summaries; finally append `changes.md`.
+- Reconcile conflicting summaries against original evidence, scope, and retrieval times rather than file recency alone. Keep unresolved discrepancies explicit.
 - Update `updated_at`, current state, source status, artifacts, and next action after each cycle.
-- Keep detailed facts, assumptions, calculations, and deltas in their dedicated artifacts.
