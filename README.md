@@ -8,7 +8,7 @@ This repository is a public Agent Skills-compatible collection maintained by mag
 
 ### Install one skill with the CLI
 
-The third-party [Vercel Labs `skills` CLI](https://github.com/vercel-labs/skills/blob/main/README.md) can install one registered skill at a time. Choose the command for the skill you want; do not run all three unless you want all three skills:
+The third-party [Vercel Labs `skills` CLI](https://github.com/vercel-labs/skills/blob/main/README.md) can install one registered skill at a time. Choose the command for the skill you want; do not run all four unless you want all four skills:
 
 **`research-workflow`**
 
@@ -26,6 +26,12 @@ npx skills add mageyuki/skills --skill intent-discovery
 
 ```bash
 npx skills add mageyuki/skills --skill design-pressure-test
+```
+
+**`test-audit`**
+
+```bash
+npx skills add mageyuki/skills --skill test-audit
 ```
 
 `--skill` selects one registered skill. The CLI can prompt for the target agent, or you can specify one with `-a`:
@@ -63,7 +69,7 @@ git clone --depth 1 https://github.com/mageyuki/skills.git mageyuki-skills
 skill=intent-discovery
 ```
 
-The other valid values are `research-workflow` and `design-pressure-test`. In the same shell, the selected `skill` value applies to whichever one agent-group pair you run below.
+The other valid values are `research-workflow`, `design-pressure-test`, and `test-audit`. In the same shell, the selected `skill` value applies to whichever one agent-group pair you run below.
 
 | Agent | Project directory | User directory | Reload or check |
 |---|---|---|---|
@@ -115,6 +121,7 @@ cp -R "mageyuki-skills/${skill:?Select a skill first}" "$HOME/.grok/skills/"
 | `research-workflow` | `0.1.0` | Durable, evidence-first workflows for multi-source research, comparisons, estimates, architecture research, incidents, and refreshes. |
 | `intent-discovery` | `0.1.0` | Gentle, evidence-aware discovery when product intent remains materially unresolved. |
 | `design-pressure-test` | `0.1.0` | Focused adversarial testing of material assumptions in an approved design when explicitly requested or risk-triggered. |
+| `test-audit` | `0.1.0` | Contract-first judgment on whether a test is needed, reliable test authoring, and explicitly scoped inventory or pruning. |
 
 ## Updates and versions
 
