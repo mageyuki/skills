@@ -24,6 +24,15 @@
       "files": [
         "SKILL.md"
       ]
+    },
+    {
+      "name": "test-audit",
+      "version": "0.1.0",
+      "files": [
+        "SKILL.md",
+        "INVENTORY.md",
+        "RELIABILITY.md"
+      ]
     }
   ]
 }
